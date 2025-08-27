@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Formulario -> Firebase (ejemplo)</title>
+  <style>
+    body{font-family:Arial,system-ui, -apple-system;max-width:720px;margin:40px auto;padding:0 16px;}
+    label{display:block;margin:10px 0}
+    input,textarea{width:100%;padding:8px;border:1px solid #ccc;border-radius:6px}
+    button{padding:10px 16px;border-radius:8px;border:none;background:#06b6d4;color:#fff;cursor:pointer}
+    #status{margin-top:10px;font-weight:600}
+  </style>
+</head>
+<body>
+  <h1>Contacto / Formulario (Firestore)</h1>
+
+  <form id="contactForm">
+    <label>Nombre
+      <input name="name" required />
+    </label>
+    <label>Email
+      <input name="email" type="email" required />
+    </label>
+    <label>Mensaje
+      <textarea name="message" rows="4" required></textarea>
+    </label>
+    <button type="submit">Enviar</button>
+  </form>
+
+  <div id="status"></div>
+
+  <!-- script modular CDN (usa la misma versión para cada import) -->
+  <script type="module">
+    // IMPORT — asegúrate de usar la misma versión en todas las importaciones
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    // --- pega aquí tu firebaseConfig obtenido en la consola ---
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_PROJECT.firebaseapp.com",
+      projectId: "TU_PROJECT_ID",
+      storageBucket: "TU_PROJECT.appspot.com",
+      messagingSenderId: "TU_SENDER_ID",
+      appId: "TU_APP_ID"
+      // databaseURL: "https://TU_PROJECT.firebaseio.com" // solo si usas Realtime DB
+    };
+
+    // Inicializa Firebase y Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Manejo del formulario
+    const form = document.getElementById('contactForm');
+    const status = document.getElementById('status');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      status.textContent = 'Enviando...';
+      const data = {
+        name: form.name.value.trim(),
+        email: form.email.value.trim(),
+        message: form.message.value.trim(),
+        createdAt: serverTimestamp()
+      };
+      try {
+        const docRef = await addDoc(collection(db, 'contacts'), data);
+        status.textContent = 'Enviado ✅ — ID: ' + docRef.id;
+        form.reset();
+      } catch (err) {
+        console.error(err);
+        status.textContent = 'Error: ' + (err.message || err);
+      }
+    });
+  </script>
+</body>
+</html>
